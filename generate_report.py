@@ -20,8 +20,8 @@ def lambda_handler(event, context):
     now = datetime.datetime.utcnow()
     # Set the end of the range to start of the current month
     end = datetime.datetime(year=now.year, month=now.month, day=1)
-    # Subtract a day and then "truncate" to the start of previous month
-    start = end - datetime.timedelta(days=1)
+    # Subtract 6 months and then "truncate" to the start of previous month
+    start = end - datetime.timedelta(days=180)
     start = datetime.datetime(year=start.year, month=start.month, day=1)
     # Get the month as string for email purposes
     month = start.strftime('%Y-%m')
@@ -37,11 +37,18 @@ def lambda_handler(event, context):
             'End':  end
         },
         Granularity='MONTHLY',
+        Filter={
+            'Tags': {
+                'Key' : 'Department',
+                'Values' : ['MSS-EPS',],
+                'MatchOptions': ['EQUALS',]
+            }
+        },
         Metrics=['BlendedCost'],
         GroupBy=[
             {
-                'Type': 'TAG',
-                'Key': 'Project'
+                'Type': 'Dimension',
+                'Key': 'Service'
             },
         ]
     )
@@ -69,8 +76,8 @@ def lambda_handler(event, context):
 
 def send_email(month, attachment):
     msg = MIMEMultipart()
-    msg['From']  = "Aaron Gussman <aaron.gussman@digitalglobe.com>"
-    msg['To'] = "aaron.gussman@digitalglobe.com"
+    msg['From']  = "eepps2@illinois.edu"
+    msg['To'] = "eepps2@illinois.edu"
     msg['Subject'] = "Monthly AWS Cost Breakdown: {}".format(month)
 
     # what a recipient sees if they don't use an email reader
