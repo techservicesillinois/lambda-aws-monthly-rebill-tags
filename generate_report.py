@@ -57,7 +57,7 @@ def lambda_handler(event, context):
 
     tsv_lines = []
     #append header row
-    tsv_lines.append("Service\tStart Date\tAmound")
+    tsv_lines.append("Service\tStart Date\tAmount")
     
     for timeperiod in response["ResultsByTime"]:
         startdate = timeperiod["TimePeriod"]["Start"]
