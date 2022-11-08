@@ -47,8 +47,8 @@ def lambda_handler(event, context):
         Metrics=['BlendedCost'],
         GroupBy=[
             {
-                'Type': 'Dimension',
-                'Key': 'Service'
+                'Type': 'DIMENSION',
+                'Key': 'SERVICE'
             },
         ]
     )
@@ -56,17 +56,19 @@ def lambda_handler(event, context):
     #pprint.pprint()
 
     tsv_lines = []
-    for project in response["ResultsByTime"][0]["Groups"]:
-        namestring = project['Keys'][0]
-        name = re.search("\$(.*)", namestring).group(1)
-        if name is None or name == "":
-            name = "Other"
+    #append header row
+    tsv_lines.append("Service\tStart Date\tAmound")
+    
+    for timeperiod in response["ResultsByTime"]:
+        startdate = timeperiod["TimePeriod"]["Start"]
+        for project in timeperiod["Groups"]:
+            namestring = project['Keys'][0]
 
-        amount = project['Metrics']['BlendedCost']['Amount']
-        amount = float(amount)
-        line = "{}\t${:,.2f}".format(name, amount)
-        print(line)
-        tsv_lines.append(line)
+            amount = project['Metrics']['BlendedCost']['Amount']
+            amount = float(amount)
+            line = "{}\t{}\t${:,.2f}".format(namestring, startdate, amount)
+            print(line)
+            tsv_lines.append(line)
 
 
     send_email(month, "\n".join(tsv_lines))
