@@ -14,6 +14,7 @@ from botocore.exceptions import ClientError
 #   {
 #       'tag-key': '[name of tag]',
 #       'tag-value': '[value of tag]' | pass blank value to retrieve all tags
+#       'tag-value-default': '[default]' | default value if desired for all untagged resources
 #       'days': 30 | number of days to go back, 30=1 month, 180=6 months, etc.
 #   }
 def lambda_handler(event, context):
@@ -88,7 +89,10 @@ def lambda_handler(event, context):
             service = groups['Keys'][1]
             tag_value = groups['Keys'][0].replace('{}$'.format(event['tag-key']),'')
             if tag_value == '':
-                tag_value = '[no tag]'
+                if event['tag-value-default'] == '':
+                    tag_value = '[no tag]'
+                else:
+                    tag_value = event['tag-value-default']
 
             amount = groups['Metrics']['BlendedCost']['Amount']
             amount = float(amount)
