@@ -10,7 +10,12 @@ from email.mime.multipart import MIMEMultipart
 
 from botocore.exceptions import ClientError
 
-
+#   event inputs required:
+#   {
+#       'tag-key': '[name of tag]',
+#       'tag-value': '[value of tag]'
+#       'days': 30   [number of days to go back, 30=1 month, 180=6 months, etc.]
+#   }
 def lambda_handler(event, context):
     # Create a Cost Explorer client
     client = boto3.client('ce')
@@ -21,7 +26,7 @@ def lambda_handler(event, context):
     # Set the end of the range to start of the current month
     end = datetime.datetime(year=now.year, month=now.month, day=1)
     # Subtract 6 months and then "truncate" to the start of previous month
-    start = end - datetime.timedelta(days=180)
+    start = end - datetime.timedelta(days=event['days'])
     start = datetime.datetime(year=start.year, month=start.month, day=1)
     # Get the month as string for email purposes
     month = start.strftime('%Y-%m')
@@ -39,8 +44,8 @@ def lambda_handler(event, context):
         Granularity='MONTHLY',
         Filter={
             'Tags': {
-                'Key' : 'Department',
-                'Values' : ['MSS-EPS',],
+                'Key' : '{}'.format(event['tag-key']),
+                'Values' : ['{}'.format(event['tag-value']),],
                 'MatchOptions': ['EQUALS',]
             }
         },
@@ -71,27 +76,27 @@ def lambda_handler(event, context):
             tsv_lines.append(line)
 
 
-    send_email(month, "\n".join(tsv_lines))
+    send_email('{}'.format(event['tag-value']), 'from {} to {}'.format(start, end), "\n".join(tsv_lines))
 
 
 
 
-def send_email(month, attachment):
+def send_email(tag, report_dates, attachment):
     msg = MIMEMultipart()
     msg['From']  = "eepps2@illinois.edu"
     msg['To'] = "eepps2@illinois.edu"
-    msg['Subject'] = "Monthly AWS Cost Breakdown: {}".format(month)
+    msg['Subject'] = "Monthly AWS Cost Breakdown: {}".format(tag)
 
     # what a recipient sees if they don't use an email reader
     msg.preamble = 'Multipart message.\n'
 
     # the message body
-    part = MIMEText('Here is the aws billing data from last month.')
+    part = MIMEText('Here is the AWS billing data {} for {}.'.format(report_dates, tag))
     msg.attach(part)
 
     # the attachment
     part = MIMEApplication(attachment)
-    part.add_header('Content-Disposition', 'attachment', filename="AWS-MonthlyCostByProject-{}.tsv".format(month))
+    part.add_header('Content-Disposition', 'attachment', filename="AWS-MonthlyCostByTag-{}.tsv".format(tag))
     msg.attach(part)
 
     # Create an AWS Simple Email Service (SES) client
