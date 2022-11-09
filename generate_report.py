@@ -13,8 +13,8 @@ from botocore.exceptions import ClientError
 #   event inputs required:
 #   {
 #       'tag-key': '[name of tag]',
-#       'tag-value': '[value of tag]'
-#       'days': 30   [number of days to go back, 30=1 month, 180=6 months, etc.]
+#       'tag-value': '[value of tag]' | pass blank value to retrieve all tags
+#       'days': 30 | number of days to go back, 30=1 month, 180=6 months, etc.
 #   }
 def lambda_handler(event, context):
     # Create a Cost Explorer client
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     now = datetime.datetime.utcnow()
     # Set the end of the range to start of the current month
     end = datetime.datetime(year=now.year, month=now.month, day=1)
-    # Subtract 6 months and then "truncate" to the start of previous month
+    # Subtract number of days and then "truncate" to the start of that month
     start = end - datetime.timedelta(days=event['days'])
     start = datetime.datetime(year=start.year, month=start.month, day=1)
     # Get the month as string for email purposes
@@ -35,6 +35,20 @@ def lambda_handler(event, context):
     start = start.strftime('%Y-%m-%d')
     end = end.strftime('%Y-%m-%d')
 
+    # Get list of available tags
+    tagValue = []
+    if event['tag-value'] == '':
+        responseTags = client.get_tags(
+            TimePeriod={
+                'Start': start,
+                'End':  end
+            },
+            TagKey='{}'.format(event['tag-key'])
+        )
+        for tagVal in responseTags["Tags"]:
+            tagValue.append(tagVal)
+    else:
+        tagValue.append('{}'.format(event['tag-value']))
 
     response = client.get_cost_and_usage(
         TimePeriod={
@@ -45,12 +59,16 @@ def lambda_handler(event, context):
         Filter={
             'Tags': {
                 'Key' : '{}'.format(event['tag-key']),
-                'Values' : ['{}'.format(event['tag-value']),],
+                'Values' : tagValue,
                 'MatchOptions': ['EQUALS',]
             }
         },
         Metrics=['BlendedCost'],
         GroupBy=[
+            {
+                'Type': 'TAG',
+                'Key': '{}'.format(event['tag-key'])
+            },
             {
                 'Type': 'DIMENSION',
                 'Key': 'SERVICE'
@@ -62,16 +80,19 @@ def lambda_handler(event, context):
 
     tsv_lines = []
     #append header row
-    tsv_lines.append("Service\tStart Date\tAmount")
+    tsv_lines.append("{}\tService\tMonth\tAmount".format(event['tag-key']))
     
     for timeperiod in response["ResultsByTime"]:
-        startdate = timeperiod["TimePeriod"]["Start"]
-        for project in timeperiod["Groups"]:
-            namestring = project['Keys'][0]
+        startdate = timeperiod["TimePeriod"]["Start"].replace("-01","")
+        for groups in timeperiod["Groups"]:
+            service = groups['Keys'][1]
+            tag_value = groups['Keys'][0].replace('{}$'.format(event['tag-key']),'')
+            if tag_value == '':
+                tag_value = '[no tag]'
 
-            amount = project['Metrics']['BlendedCost']['Amount']
+            amount = groups['Metrics']['BlendedCost']['Amount']
             amount = float(amount)
-            line = "{}\t{}\t${:,.2f}".format(namestring, startdate, amount)
+            line = "{}\t{}\t{}\t${:,.2f}".format(tag_value, service, startdate, amount)
             print(line)
             tsv_lines.append(line)
 
@@ -85,7 +106,7 @@ def send_email(tag, report_dates, attachment):
     msg = MIMEMultipart()
     msg['From']  = "eepps2@illinois.edu"
     msg['To'] = "eepps2@illinois.edu"
-    msg['Subject'] = "Monthly AWS Cost Breakdown: {}".format(tag)
+    msg['Subject'] = "AWS Cost Breakdown: {}".format(tag)
 
     # what a recipient sees if they don't use an email reader
     msg.preamble = 'Multipart message.\n'
