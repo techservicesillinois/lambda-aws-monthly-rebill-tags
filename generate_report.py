@@ -56,6 +56,7 @@ def lambda_handler(event, context):
     else:
         tagValue.append('{}'.format(event['tag-value']))
 
+    # get the usage data, filtered by tag and grouped by tag/service
     response = client.get_cost_and_usage(
         TimePeriod={
             'Start': start,
@@ -82,7 +83,7 @@ def lambda_handler(event, context):
         ]
     )
     
-    # parse return values into arrays prepared for pandas DataFrame
+    # process retrieved response data into arrays ready to pandas DataTable
     arr_tag_value = []
     arr_service = []
     arr_month = []
@@ -104,9 +105,9 @@ def lambda_handler(event, context):
             arr_service.append(service)
             arr_month.append(month) 
             arr_amount.append(amount)
-    
-    # get the number of rows total (to be used in Excel sheet later)        
-    num_rows = len(arr_amount)
+
+    # Get the number of rows (plus 1) for use in formatting Excel file
+    num_rows = len(arr_amount) + 1
     
     # create pandas DataFrame from output values
     xl_file_df = {event['tag-key']: arr_tag_value, 'Service': arr_service, 'Month': arr_month, 'Amount': arr_amount}
@@ -116,8 +117,41 @@ def lambda_handler(event, context):
     output = io.BytesIO()
     writer = pd.ExcelWriter(output)
     xl_file.to_excel(writer, sheet_name='Sheet1')
-    writer.close()
 
+    # Get active book/sheet for further processing
+    wb = writer.book
+    ws = wb.active
+    
+    # get rid of useless first column
+    ws.move_range("B1:E{}".format(num_rows), rows=0, cols=-1, translate=True)
+
+    # Generate chart based on data table
+    from openpyxl.chart import BarChart, Reference, Series
+    # create chart in Excel file
+    xl_chart = BarChart()
+    xl_chart.type = "col"
+    xl_chart.style = 10
+    xl_chart.title = "AWS Charges by Month"
+    xl_chart.y_axis.title = 'AWS Charges'
+    xl_chart.x_axis.title = 'Month'
+    data = Reference(ws, min_col=3, min_row=1, max_row=num_rows, max_col=4)
+    cats = Reference(ws, min_col=3, min_row=2, max_row=num_rows, max_col=3)
+    xl_chart.add_data(data, titles_from_data=True)
+    xl_chart.set_categories(cats)
+    xl_chart.shape = 4
+    xl_chart.legend.overlay = 0
+    ws.add_chart(xl_chart, "G2")
+
+    # add table with default styling (striped rows and banded columns)
+    from openpyxl.worksheet.table import Table, TableStyleInfo
+    xl_table = Table(displayName="AWS", ref="A1:D{}".format(num_rows))
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False,
+                           showLastColumn=False, showRowStripes=True, showColumnStripes=True)
+    xl_table.tableStyleInfo = style
+    ws.add_table(xl_table)
+
+    # save/close file
+    writer.close()
     # get file content from stream
     xl_file_att = output.getvalue()
 
