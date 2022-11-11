@@ -4,6 +4,10 @@ import boto3
 import datetime
 import re
 
+import pandas as pd
+import openpyxl
+import io
+
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -36,7 +40,8 @@ def lambda_handler(event, context):
     start = start.strftime('%Y-%m-%d')
     end = end.strftime('%Y-%m-%d')
 
-    # Get list of available tags
+    # If there is no tag value specified, get a list of available tag
+    #  values for the provided key
     tagValue = []
     if event['tag-value'] == '':
         responseTags = client.get_tags(
@@ -76,15 +81,14 @@ def lambda_handler(event, context):
             },
         ]
     )
-
-    #pprint.pprint()
-
-    tsv_lines = []
-    #append header row
-    tsv_lines.append("{}\tService\tMonth\tAmount".format(event['tag-key']))
     
+    # parse return values into arrays prepared for pandas DataFrame
+    arr_tag_value = []
+    arr_service = []
+    arr_month = []
+    arr_amount = []
     for timeperiod in response["ResultsByTime"]:
-        startdate = timeperiod["TimePeriod"]["Start"].replace("-01","")
+        month = timeperiod["TimePeriod"]["Start"].replace("-01","")
         for groups in timeperiod["Groups"]:
             service = groups['Keys'][1]
             tag_value = groups['Keys'][0].replace('{}$'.format(event['tag-key']),'')
@@ -96,14 +100,29 @@ def lambda_handler(event, context):
 
             amount = groups['Metrics']['BlendedCost']['Amount']
             amount = float(amount)
-            line = "{}\t{}\t{}\t${:,.2f}".format(tag_value, service, startdate, amount)
-            print(line)
-            tsv_lines.append(line)
+            arr_tag_value.append(tag_value)
+            arr_service.append(service)
+            arr_month.append(month) 
+            arr_amount.append(amount)
+    
+    # get the number of rows total (to be used in Excel sheet later)        
+    num_rows = len(arr_amount)
+    
+    # create pandas DataFrame from output values
+    xl_file_df = {event['tag-key']: arr_tag_value, 'Service': arr_service, 'Month': arr_month, 'Amount': arr_amount}
+    xl_file = pd.DataFrame(xl_file_df)
 
+    # write Excel output to a stream
+    output = io.BytesIO()
+    writer = pd.ExcelWriter(output)
+    xl_file.to_excel(writer, sheet_name='Sheet1')
+    writer.close()
 
-    send_email('{}'.format(event['tag-value']), 'from {} to {}'.format(start, end), "\n".join(tsv_lines))
+    # get file content from stream
+    xl_file_att = output.getvalue()
 
-
+    # send email with Excel file attachment data
+    send_email('{}'.format(event['tag-value']), 'from {} to {}'.format(start, end), xl_file_att)
 
 
 def send_email(tag, report_dates, attachment):
@@ -121,7 +140,7 @@ def send_email(tag, report_dates, attachment):
 
     # the attachment
     part = MIMEApplication(attachment)
-    part.add_header('Content-Disposition', 'attachment', filename="AWS-MonthlyCostByTag-{}.tsv".format(tag))
+    part.add_header('Content-Disposition', 'attachment', filename="AWS-MonthlyCostByTag-{}.xlsx".format(tag))
     msg.attach(part)
 
     # Create an AWS Simple Email Service (SES) client
