@@ -54,8 +54,10 @@ def lambda_handler(event, context):
         )
         for tagVal in responseTags["Tags"]:
             tagValue.append(tagVal)
+        tag_email_display = 'All {}'.format(event['tag-key'])
     else:
         tagValue.append('{}'.format(event['tag-value']))
+        tag_email_display = event['tag-value']
 
     # get the usage data, filtered by tag and grouped by tag/service
     response = client.get_cost_and_usage(
@@ -123,7 +125,7 @@ def lambda_handler(event, context):
     wb = writer.book
     ws = wb.active
     
-    # get rid of useless first column
+    # get rid of first column
     ws.move_range("B1:E{}".format(num_rows), rows=0, cols=-1, translate=True)
     
     if event['show-chart'] == 1:
@@ -141,24 +143,29 @@ def lambda_handler(event, context):
         xl_chart.add_data(data, titles_from_data=True)
         xl_chart.set_categories(cats)
         xl_chart.shape = 4
-        xl_chart.legend.overlay = 0
         ws.add_chart(xl_chart, "G2")
 
-    # add table with default styling (striped rows and banded columns)
+    # add table with default styling (striped rows)
     from openpyxl.worksheet.table import Table, TableStyleInfo
     xl_table = Table(displayName="AWS", ref="A1:D{}".format(num_rows))
-    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False,
-                           showLastColumn=False, showRowStripes=True, showColumnStripes=True)
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
     xl_table.tableStyleInfo = style
     ws.add_table(xl_table)
+    
+    # add subtotal to table
+    ws['D{}'.format(num_rows + 1)] = '=SUBTOTAL(9,AWS[Amount])'
+        
+    # format amount column to 2 decimal points, dollar sign on subtotal
+    for row in range(1, num_rows + 2):
+        ws.cell(column=4, row=row).number_format = '#,##0.00'
 
     # save/close file
     writer.close()
     # get file content from stream
     xl_file_att = output.getvalue()
-
+    
     # send email with Excel file attachment data
-    send_email('{}'.format(event['tag-value']), 'from {} to {}'.format(start, end), xl_file_att)
+    send_email(tag_email_display, 'from {} to {}'.format(start, end), xl_file_att)
 
 
 def send_email(tag, report_dates, attachment):
