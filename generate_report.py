@@ -28,39 +28,37 @@ def lambda_handler(event, context):
 
     # Set time range to cover the last full calendar month
     # Note that the end date is EXCLUSIVE (e.g., not counted)
-    now = datetime.datetime.utcnow()
+    dt_now = datetime.datetime.utcnow()
     # Set the end of the range to start of the current month
-    end = datetime.datetime(year=now.year, month=now.month, day=1)
+    dt_end = datetime.datetime(year=dt_now.year, month=dt_now.month, day=1)
     # Subtract number of days and then "truncate" to the start of that month
-    start = end - datetime.timedelta(days=event['days'])
-    start = datetime.datetime(year=start.year, month=start.month, day=1)
-    # Get the month as string for email purposes
-    month = start.strftime('%Y-%m')
+    dt_start = dt_end - datetime.timedelta(days=event['days'])
+    dt_start = datetime.datetime(year=dt_start.year, month=dt_start.month, day=1)
 
     # Convert them to strings
-    start = start.strftime('%Y-%m-%d')
-    end = end.strftime('%Y-%m-%d')
+    start = dt_start.strftime('%Y-%m-%d')
+    end = dt_end.strftime('%Y-%m-%d')
 
     # If there is no tag value specified, get a list of available tag
     #  values for the provided key
-    tagValue = []
+    arr_input_tag_value = []
     if event['tag-value'] == '':
-        responseTags = client.get_tags(
+        response_tags = client.get_tags(
             TimePeriod={
                 'Start': start,
                 'End':  end
             },
             TagKey='{}'.format(event['tag-key'])
         )
-        for tagVal in responseTags["Tags"]:
-            tagValue.append(tagVal)
+        for input_tag_value in response_tags["Tags"]:
+            arr_input_tag_value.append(input_tag_value)
         tag_email_display = 'All {}'.format(event['tag-key'])
     else:
-        tagValue.append('{}'.format(event['tag-value']))
+        arr_input_tag_value.append('{}'.format(event['tag-value']))
         tag_email_display = event['tag-value']
 
     # get the usage data, filtered by tag and grouped by tag/service
-    response = client.get_cost_and_usage(
+    response_cost = client.get_cost_and_usage(
         TimePeriod={
             'Start': start,
             'End':  end
@@ -69,7 +67,7 @@ def lambda_handler(event, context):
         Filter={
             'Tags': {
                 'Key' : '{}'.format(event['tag-key']),
-                'Values' : tagValue,
+                'Values' : arr_input_tag_value,
                 'MatchOptions': ['EQUALS',]
             }
         },
@@ -91,7 +89,7 @@ def lambda_handler(event, context):
     arr_service = []
     arr_month = []
     arr_amount = []
-    for timeperiod in response["ResultsByTime"]:
+    for timeperiod in response_cost["ResultsByTime"]:
         month = timeperiod["TimePeriod"]["Start"].replace("-01","")
         for groups in timeperiod["Groups"]:
             service = groups['Keys'][1]
@@ -117,16 +115,16 @@ def lambda_handler(event, context):
     xl_file = pd.DataFrame(xl_file_df)
 
     # write Excel output to a stream
-    output = io.BytesIO()
-    writer = pd.ExcelWriter(output)
-    xl_file.to_excel(writer, sheet_name='Sheet1')
+    xl_output = io.BytesIO()
+    xl_writer = pd.ExcelWriter(xl_output)
+    xl_file.to_excel(xl_writer, sheet_name='Sheet1')
 
     # Get active book/sheet for further processing
-    wb = writer.book
-    ws = wb.active
+    xl_wb = xl_writer.book
+    xl_ws = xl_wb.active
     
     # get rid of first column
-    ws.move_range("B1:E{}".format(num_rows), rows=0, cols=-1, translate=True)
+    xl_ws.move_range("B1:E{}".format(num_rows), rows=0, cols=-1, translate=True)
     
     if event['show-chart'] == 1:
         # Generate chart based on data table
@@ -138,8 +136,8 @@ def lambda_handler(event, context):
         xl_chart.title = "AWS Charges by Month"
         xl_chart.y_axis.title = 'AWS Charges'
         xl_chart.x_axis.title = 'Month'
-        data = Reference(ws, min_col=3, min_row=1, max_row=num_rows, max_col=4)
-        cats = Reference(ws, min_col=3, min_row=2, max_row=num_rows, max_col=3)
+        data = Reference(xl_ws, min_col=3, min_row=1, max_row=num_rows, max_col=4)
+        cats = Reference(xl_ws, min_col=3, min_row=2, max_row=num_rows, max_col=3)
         xl_chart.add_data(data, titles_from_data=True)
         xl_chart.set_categories(cats)
         xl_chart.shape = 4
@@ -148,21 +146,21 @@ def lambda_handler(event, context):
     # add table with default styling (striped rows)
     from openpyxl.worksheet.table import Table, TableStyleInfo
     xl_table = Table(displayName="AWS", ref="A1:D{}".format(num_rows))
-    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
-    xl_table.tableStyleInfo = style
-    ws.add_table(xl_table)
+    xl_table_style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
+    xl_table.tableStyleInfo = xl_table_style
+    xl_ws.add_table(xl_table)
     
     # add subtotal to table
-    ws['D{}'.format(num_rows + 1)] = '=SUBTOTAL(9,AWS[Amount])'
+    xl_ws['D{}'.format(num_rows + 1)] = '=SUBTOTAL(9,AWS[Amount])'
         
     # format amount column to 2 decimal points, dollar sign on subtotal
-    for row in range(1, num_rows + 2):
-        ws.cell(column=4, row=row).number_format = '#,##0.00'
+    for xl_row in range(1, num_rows + 2):
+        xl_ws.cell(column=4, xl_row=row).number_format = '#,##0.00'
 
     # save/close file
-    writer.close()
+    xl_writer.close()
     # get file content from stream
-    xl_file_att = output.getvalue()
+    xl_file_att = xl_output.getvalue()
     
     # send email with Excel file attachment data
     send_email(tag_email_display, 'from {} to {}'.format(start, end), xl_file_att)
