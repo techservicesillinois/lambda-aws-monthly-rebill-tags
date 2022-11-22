@@ -25,6 +25,7 @@ from botocore.exceptions import ClientError
 def lambda_handler(event, context):
     # Create a Cost Explorer client
     client = boto3.client('ce')
+    clientSTS = boto3.client('sts')
 
     # Set time range to cover the last full calendar month
     # Note that the end date is EXCLUSIVE (e.g., not counted)
@@ -84,7 +85,11 @@ def lambda_handler(event, context):
         ]
     )
     
+    # get account number
+    account_number = clientSTS.get_caller_identity()["Account"]
+    
     # process retrieved response data into arrays ready to pandas DataTable
+    arr_account_number = []
     arr_tag_value = []
     arr_service = []
     arr_month = []
@@ -102,6 +107,7 @@ def lambda_handler(event, context):
 
             amount = groups['Metrics']['BlendedCost']['Amount']
             amount = float(amount)
+            arr_account_number.append(account_number)
             arr_tag_value.append(tag_value)
             arr_service.append(service)
             arr_month.append(month) 
@@ -111,7 +117,7 @@ def lambda_handler(event, context):
     num_rows = len(arr_amount) + 1
     
     # create pandas DataFrame from output values
-    xl_file_df = {event['tag-key']: arr_tag_value, 'Service': arr_service, 'Month': arr_month, 'Amount': arr_amount}
+    xl_file_df = {'Account': arr_account_number, event['tag-key']: arr_tag_value, 'Service': arr_service, 'Month': arr_month, 'Amount': arr_amount}
     xl_file = pd.DataFrame(xl_file_df)
 
     # write Excel output to a stream
@@ -124,7 +130,7 @@ def lambda_handler(event, context):
     xl_ws = xl_wb.active
     
     # get rid of first column
-    xl_ws.move_range("B1:E{}".format(num_rows), rows=0, cols=-1, translate=True)
+    xl_ws.move_range("B1:F{}".format(num_rows), rows=0, cols=-1, translate=True)
     
     if event['show-chart'] == 1:
         # Generate chart based on data table
@@ -136,26 +142,26 @@ def lambda_handler(event, context):
         xl_chart.title = "AWS Charges by Month"
         xl_chart.y_axis.title = 'AWS Charges'
         xl_chart.x_axis.title = 'Month'
-        data = Reference(xl_ws, min_col=3, min_row=1, max_row=num_rows, max_col=4)
-        cats = Reference(xl_ws, min_col=3, min_row=2, max_row=num_rows, max_col=3)
+        data = Reference(xl_ws, min_col=4, min_row=2, max_row=num_rows, max_col=5)
+        cats = Reference(xl_ws, min_col=4, min_row=3, max_row=num_rows, max_col=4)
         xl_chart.add_data(data, titles_from_data=True)
         xl_chart.set_categories(cats)
         xl_chart.shape = 4
-        ws.add_chart(xl_chart, "G2")
+        ws.add_chart(xl_chart, "H2")
 
     # add table with default styling (striped rows)
     from openpyxl.worksheet.table import Table, TableStyleInfo
-    xl_table = Table(displayName="AWS", ref="A1:D{}".format(num_rows))
+    xl_table = Table(displayName="AWS", ref="A1:E{}".format(num_rows))
     xl_table_style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
     xl_table.tableStyleInfo = xl_table_style
     xl_ws.add_table(xl_table)
     
     # add subtotal to table
-    xl_ws['D{}'.format(num_rows + 1)] = '=SUBTOTAL(9,AWS[Amount])'
+    xl_ws['E{}'.format(num_rows + 1)] = '=SUBTOTAL(9,AWS[Amount])'
         
     # format amount column to 2 decimal points, dollar sign on subtotal
-    for xl_row in range(1, num_rows + 2):
-        xl_ws.cell(column=4, xl_row=row).number_format = '#,##0.00'
+    for row in range(1, num_rows + 2):
+        xl_ws.cell(column=5, row=row).number_format = '#,##0.00'
 
     # save/close file
     xl_writer.close()
@@ -168,8 +174,8 @@ def lambda_handler(event, context):
 
 def send_email(tag, report_dates, attachment):
     msg = MIMEMultipart()
-    msg['From']  = "eepps2@illinois.edu"
-    msg['To'] = "eepps2@illinois.edu"
+    msg['From'] = "eepps2@illinois.edu"
+    msg['To']  = "eepps2@illinois.edu"
     msg['Subject'] = "AWS Cost Breakdown: {}".format(tag)
 
     # what a recipient sees if they don't use an email reader
