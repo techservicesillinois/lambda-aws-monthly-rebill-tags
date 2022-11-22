@@ -72,7 +72,7 @@ def lambda_handler(event, context):
                 'MatchOptions': ['EQUALS',]
             }
         },
-        Metrics=['BlendedCost'],
+        Metrics=['UnblendedCost'],
         GroupBy=[
             {
                 'Type': 'TAG',
@@ -105,7 +105,7 @@ def lambda_handler(event, context):
                 else:
                     tag_value = event['tag-value-default']
 
-            amount = groups['Metrics']['BlendedCost']['Amount']
+            amount = groups['Metrics']['UnblendedCost']['Amount']
             amount = float(amount)
             arr_account_number.append(account_number)
             arr_tag_value.append(tag_value)
