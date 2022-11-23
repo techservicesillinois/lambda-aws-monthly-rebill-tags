@@ -8,7 +8,7 @@
 - name: Create IAM role for lambda execution
   community.aws.iam_role:
     name: "lambda_{{ aws_lambda }}"
-#    assume_role_policy_document: "{{ lookup('template','logs_policy.json.j2') }}"
+    assume_role_policy_document: "{{ lookup('template','logs_policy.json.j2') }}"
     description: "Policy controlling access granted to lambda function {{ aws_lambda }}"
     managed_policies: []
 
