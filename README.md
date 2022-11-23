@@ -2,7 +2,7 @@
 
 Based on https://github.com/agussman/aws-cost-explorer
 
-A simple Python 3 script to run via AWS Lambda to report monthly billing broken down by Tag.
+A simple Python 3 script to run via AWS Lambda to report monthly billing from AWS Cost Explorer split by Tag.
 
 # Input values
 
