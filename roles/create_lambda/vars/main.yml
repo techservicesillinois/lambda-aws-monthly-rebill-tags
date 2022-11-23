@@ -1,0 +1,22 @@
+region: us-east-2
+state: present
+aws_lambda: monthly-billing-by-tag
+
+trigger_inputs:
+  tag_key: Department
+  tag_value: ""
+  tag_value_default: MSS
+  days: 30
+  show_chart: 0
+  email_from: eepps2@illinois.edu
+  email_to: eepps2@illinois.edu
+
+# See https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html
+eventbridge_schedule: "cron(05 11 ? * 5#3 *)" # third Thursday of every month at 11:05 UTC
+
+tags:
+  NetID: eepps2
+  Contact: smg-support@illinois.edu
+  CFOP: "{{ cfop }}"
+  service: billing
+  Department: MSS

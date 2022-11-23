@@ -1,64 +1,6 @@
----
+- name: Create Lambda function and trigger
+  hosts: localhost
+  gather_facts: false
 
-- name: Get the current caller identity information
-  amazon.aws.aws_caller_info:
-  register: aws_info
-
-# see https://github.com/techservicesillinois/mss-aws-ecs-cloud-broker-infra/blob/main/roles/aws_ecs_cloudbroker_infra/tasks/splunk.yml
-- name: Create iam role for lambda execution
-  community.aws.iam_role:
-    name: "{{ aws_lambda }}"
-    assume_role_policy_document: "{{ lookup('ansible.builtin.template','trust_policy.json.j2') }}"
-    description: "Policy controlling access granted to lambda function {{ aws_lambda }}"
-    managed_policies: []
-
-- name: Apply policy to iam role
-  community.aws.iam_policy:
-    iam_type: role
-    iam_name: "{{ aws_lambda }}"
-    policy_name: "{{ aws_lambda }}"
-    policy_json: "{{ lookup('template', 'cost_explorer_ses_policy.json.j2') }}"
-
-- name: Create cloudwatch log group for lambda
-  amazon.aws.cloudwatchlogs_log_group:
-    log_group_name: "/aws/lambda/{{ aws_lambda }}"
-    retention: 5
-
-# see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
-- community.aws.cloudwatchevent_rule:
-    name: lambda_billing_report
-    schedule_expression: "cron(08 1 8 * ? *)"
-    description: Run billing report Lambda monthly
-    targets:
-      - id: MyTargetId
-        arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
-        input: '{"tag-key": "Department", "tag-value": "", "tag-value-default": "MSS", "days": 180, "show-chart": 0}'
-
-    
-# see https://github.com/techservicesillinois/splunk-aws-serverless-apps/tree/master/splunk-cloudwatch-logs-processor
-# see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter.html
-# see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#LambdaFunctionExample
-- name: Deploy lambda
-  amazon.aws.lambda:
-    name: "{{ aws_lambda }}"
-    zip_file: "{{ lookup('lambda_src', 'generate_report.py.zip') }}"
-    runtime: "python3.8"
-    role: "arn:aws:iam::{{ aws_info.account }}:role/{{ aws_lambda }}"
-    handler: "lambda_function.lambda_handler"
-    memory_size: 128
-    timeout: 5
-    #TODO way to add layers from Amazon? AWSSDKPandas-Python38
-
-- name: Query lambda info
-  amazon.aws.lambda_info:
-    function_name: "{{ aws_lambda }}"
-  register: lambda_info
-
-- name: Add policy to allow cloudwatch to invoke lambda
-  amazon.aws.lambda_policy:
-    function_arn: "{{ lambda_info.functions[0].function_arn }}"
-    action: lambda:InvokeFunction
-    principal: "logs.{{ region }}.amazonaws.com"
-    source_arn: "arn:aws:logs:{{ region }}:{{ aws_info.account }}:log-group:{{ log_group }}:*"
-    source_account: "{{ aws_info.account }}"
-    statement_id: "{{ aws_lambda }}-{{ log_group }}"
+  roles:
+     - create_lambda
