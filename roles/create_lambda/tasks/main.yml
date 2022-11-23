@@ -4,20 +4,6 @@
   amazon.aws.aws_caller_info:
   register: aws_info
 
-# see https://github.com/techservicesillinois/mss-aws-ecs-cloud-broker-infra/blob/main/roles/aws_ecs_cloudbroker_infra/tasks/splunk.yml
-- name: Create IAM role for lambda execution
-  community.aws.iam_role:
-    name: "lambda_{{ aws_lambda }}"
-    assume_role_policy_document: "{{ lookup('template','logs_policy.json.j2') }}"
-    description: "Policy controlling access granted to lambda function {{ aws_lambda }}"
-    managed_policies: []
-
-- name: Apply policy to IAM role
-  community.aws.iam_policy:
-    iam_type: role
-    iam_name: "lambda_{{ aws_lambda }}"
-    policy_name: "lambda_cost_explorer_ses_{{ aws_lambda }}"
-    policy_json: "{{ lookup('template', 'cost_explorer_ses_policy.json.j2') }}"
 
 # see https://github.com/techservicesillinois/splunk-aws-serverless-apps/tree/master/splunk-cloudwatch-logs-processor
 # see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter.html
