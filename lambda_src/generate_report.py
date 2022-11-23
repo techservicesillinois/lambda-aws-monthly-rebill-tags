@@ -17,10 +17,12 @@ from botocore.exceptions import ClientError
 #   event inputs required:
 #   {
 #       'tag-key': '[name of tag]',
-#       'tag-value': '[value of tag]' | pass blank value to retrieve all tags
-#       'tag-value-default': '[default]' | default value if desired for all untagged resources
-#       'days': 30 | number of days to go back, 30=1 month, 180=6 months, etc.
-#       'show-chart': 1 | add this if you want the chart to be displayed. no chart unless this is set to 1
+#       'tag-value': '[value of tag]'     | pass blank value to retrieve all tags
+#       'tag-value-default': '[default]'  | default value if desired for all untagged resources
+#       'days': 30                        | number of days to go back, 30=1 month, 180=6 months, etc.
+#       'show-chart': 1                   | add this if you want the chart to be displayed. no chart unless this is set to 1
+#       'email-from': '[email sent from]' | must be confirmed in AWS SES https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure
+#       'email-to': '[email sent to]'     | must be confirmed in AWS SES https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure
 #   }
 def lambda_handler(event, context):
     # Create a Cost Explorer client
@@ -174,15 +176,15 @@ def lambda_handler(event, context):
 
 def send_email(tag, report_dates, attachment):
     msg = MIMEMultipart()
-    msg['From'] = "eepps2@illinois.edu"
-    msg['To']  = "eepps2@illinois.edu"
+    msg['From'] = event['email-from']
+    msg['To']  = event['email-to']
     msg['Subject'] = "AWS Cost Breakdown: {}".format(tag)
 
     # what a recipient sees if they don't use an email reader
     msg.preamble = 'Multipart message.\n'
 
     # the message body
-    part = MIMEText('Here is the AWS billing data {} for {}.'.format(report_dates, tag))
+    part = MIMEText('Here is the AWS billing data {} for the Tag {}.'.format(report_dates, tag))
     msg.attach(part)
 
     # the attachment
