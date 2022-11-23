@@ -3,12 +3,11 @@
     "Statement": [
         {
             "Effect": "Allow",
-            "Principal": "*",
             "Action": "logs:CreateLogGroup"
         },
         {
             "Effect": "Allow",
-            "Principal": "*",
+            "Principal": { "AWS": "arn:aws:iam::{{ aws_info.account }}:root" },
             "Action": [
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
