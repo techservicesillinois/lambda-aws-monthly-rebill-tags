@@ -23,7 +23,7 @@
 # see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter.html
 # see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#LambdaFunctionExample
 - name: Deploy lambda
-  amazon.aws.lambda:
+  community.aws.lambda:
     name: "{{ aws_lambda }}"
     zip_file: "{{ lookup('files', 'generate_report.py.zip') }}"
     runtime: "python3.8"
