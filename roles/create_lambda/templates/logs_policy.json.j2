@@ -10,9 +10,6 @@
             "Action": [
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
-            ],
-            "Resource": [
-                "arn:aws:logs:{{ region }}:{{ aws_info.account }}:log-group:/aws/lambda/{{ aws_lambda }}:*"
             ]
         }
     ]
