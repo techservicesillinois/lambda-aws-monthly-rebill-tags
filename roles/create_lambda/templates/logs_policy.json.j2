@@ -3,6 +3,7 @@
     "Statement": [
         {
             "Effect": "Allow",
+            "Principal": { "AWS": "arn:aws:iam::{{ aws_info.account }}:root" },
             "Action": "logs:CreateLogGroup"
         },
         {
