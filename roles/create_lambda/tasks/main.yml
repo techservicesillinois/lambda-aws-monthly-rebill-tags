@@ -31,7 +31,7 @@
     handler: "lambda_function.lambda_handler"
     memory_size: 128
     timeout: 5
-    
+
 # TODO way to add layers from Amazon? AWSSDKPandas-Python38
 	
 # see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
