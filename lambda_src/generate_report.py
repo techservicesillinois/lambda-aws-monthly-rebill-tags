@@ -14,7 +14,7 @@ from email.mime.multipart import MIMEMultipart
 from botocore.exceptions import ClientError
 
 #   event inputs required:
-#   {
+#
 #       'tag-key': '[name of tag]',
 #       'tag-value': '[value of tag]'     | pass blank value to retrieve all tags
 #       'tag-value-default': '[default]'  | default value if desired for all untagged resources
@@ -22,7 +22,7 @@ from botocore.exceptions import ClientError
 #       'show-chart': 1                   | add this if you want the chart to be displayed. no chart unless this is set to 1
 #       'email-from': '[email sent from]' | must be confirmed in AWS SES https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure
 #       'email-to': '[email sent to]'     | must be confirmed in AWS SES https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure
-#   }
+#
 def lambda_handler(event, context):
     # Create a Cost Explorer client
     client = boto3.client('ce')
@@ -85,10 +85,10 @@ def lambda_handler(event, context):
             },
         ]
     )
-    
+
     # get account number
     account_number = clientSTS.get_caller_identity()["Account"]
-    
+
     # process retrieved response data into arrays ready to pandas DataTable
     arr_account_number = []
     arr_tag_value = []
@@ -111,12 +111,12 @@ def lambda_handler(event, context):
             arr_account_number.append(account_number)
             arr_tag_value.append(tag_value)
             arr_service.append(service)
-            arr_month.append(month) 
+            arr_month.append(month)
             arr_amount.append(amount)
 
     # Get the number of rows (plus 1) for use in formatting Excel file
     num_rows = len(arr_amount) + 1
-    
+
     # create pandas DataFrame from output values
     xl_file_df = {'Account': arr_account_number, event['tag-key']: arr_tag_value, 'Service': arr_service, 'Month': arr_month, 'Amount': arr_amount}
     xl_file = pd.DataFrame(xl_file_df)
@@ -129,10 +129,10 @@ def lambda_handler(event, context):
     # Get active book/sheet for further processing
     xl_wb = xl_writer.book
     xl_ws = xl_wb.active
-    
+
     # get rid of first column
     xl_ws.move_range("B1:F{}".format(num_rows), rows=0, cols=-1, translate=True)
-    
+
     if event['show-chart'] == 1:
         # Generate chart based on data table
         from openpyxl.chart import BarChart, Reference, Series
@@ -156,10 +156,10 @@ def lambda_handler(event, context):
     xl_table_style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
     xl_table.tableStyleInfo = xl_table_style
     xl_ws.add_table(xl_table)
-    
+
     # add subtotal to table
     xl_ws['E{}'.format(num_rows + 1)] = '=SUBTOTAL(9,AWS[Amount])'
-        
+
     # format amount column to 2 decimal points, dollar sign on subtotal
     for row in range(1, num_rows + 2):
         xl_ws.cell(column=5, row=row).number_format = '#,##0.00'
@@ -168,7 +168,7 @@ def lambda_handler(event, context):
     xl_writer.close()
     # get file content from stream
     xl_file_att = xl_output.getvalue()
-    
+
     # send email with Excel file attachment data
     send_email(tag_email_display, 'from {} to {}'.format(start, end), xl_file_att)
 
@@ -198,9 +198,7 @@ def send_email(tag, report_dates, attachment):
         response = client.send_raw_email(
             RawMessage={
                  'Data': msg.as_string(),
-            },
-            #Source=msg['From'],
-            #Destinations=to_emails
+            }
         )
     # Display an error if something goes wrong.
     except ClientError as e:
