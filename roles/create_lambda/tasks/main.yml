@@ -16,6 +16,7 @@
 - name: Deploy lambda
   community.aws.lambda:
     name: "{{ aws_lambda }}"
+    region: "{{ region }}"
     zip_file: /roles/create_lambda/files/generate_report.zip
     runtime: "python3.8"
     role: "arn:aws:iam::{{ aws_info.account }}:role/{{ aws_lambda }}"
@@ -28,6 +29,7 @@
 # see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
 - community.aws.cloudwatchevent_rule:
     name: "lambda_{{ aws_lambda }}"
+    region: "{{ region }}"
     schedule_expression: "{{ eventbridge_schedule }}"
     description: Run billing report Lambda on schedule
     targets:
