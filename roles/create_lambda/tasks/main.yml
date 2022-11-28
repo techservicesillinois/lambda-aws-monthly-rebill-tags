@@ -4,21 +4,36 @@
   amazon.aws.aws_caller_info:
   register: aws_info
 
+# see https://github.com/techservicesillinois/mss-aws-ecs-cloud-broker-infra/blob/main/roles/aws_ecs_cloudbroker_infra/tasks/splunk.yml
+- name: Create IAM role for lambda execution
+  community.aws.iam_role:
+    name: "lambda_{{ aws_lambda }}"
+    assume_role_policy_document: "{{ lookup('template','logs_policy.json.j2') }}"
+    description: "Policy controlling access granted to lambda function {{ aws_lambda }}"
+    managed_policies: []
+
+- name: Apply policy to IAM role
+  community.aws.iam_policy:
+    iam_type: role
+    iam_name: "lambda_{{ aws_lambda }}"
+    policy_name: "lambda_cost_explorer_ses_{{ aws_lambda }}"
+    policy_json: "{{ lookup('template', 'cost_explorer_ses_policy.json.j2') }}"
 
 # see https://github.com/techservicesillinois/splunk-aws-serverless-apps/tree/master/splunk-cloudwatch-logs-processor
 # see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter.html
 # see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#LambdaFunctionExample
+
+# TODO automatically generate the .zip file when generate_report.py is modified
 - name: Deploy lambda
   community.aws.lambda:
     name: "{{ aws_lambda }}"
     region: "{{ region }}"
-    zip_file: "{{ lookup('file', 'generatereport.zip') }}"
+    zip_file: "{{ lookup('file', 'generate_report.py.zip') }}"
     runtime: "python3.8"
     role: "arn:aws:iam::{{ aws_info.account }}:role/{{ aws_lambda }}"
     handler: "lambda_function.lambda_handler"
     memory_size: 128
     timeout: 5
-
 # TODO way to add layers from Amazon? AWSSDKPandas-Python38
 
 # see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
