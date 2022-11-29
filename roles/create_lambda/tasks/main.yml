@@ -15,7 +15,7 @@
     s3_key: generate_report.py.zip
     runtime: "python3.8"
     role: arn:aws:iam::379068314111:role/service-role/lambda_send_billing_email
-    handler: "lambda_function.lambda_handler"
+    handler: "generate_report.lambda_handler"
     memory_size: 128
     timeout: 5
 
@@ -33,13 +33,13 @@
         input: '{"tag-key": "Department", "tag-value": "", "tag-value-default": "MSS", "days": "180", "show-chart": "0", "email-from": "eepps2@illinois.edu", "email-to": "eepps2@illinois.edu"}'
 
 # Example that creates a lambda event notification for a DynamoDB stream
-- name: Add trigger to EventBridge/CloudWatch event
-  community.aws.lambda_event:
-    state: present
-    region: "{{ region }}"
-    event_source: sqs
-    function_name: "{{ aws_lambda }}"
-    source_params:
-      source_arn: "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/lambda_{{ aws_lambda }}"
-      enabled: True
+#- name: Add trigger to EventBridge/CloudWatch event
+#  community.aws.lambda_event:
+#    state: present
+#    region: "{{ region }}"
+#    event_source: sqs
+#    function_name: "{{ aws_lambda }}"
+#    source_params:
+#      source_arn: "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/lambda_{{ aws_lambda }}"
+#      enabled: True
 
