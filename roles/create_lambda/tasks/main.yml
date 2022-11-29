@@ -40,6 +40,6 @@
     event_source: sqs
     function_name: "{{ aws_lambda }}"
     source_params:
-      source_arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
+      source_arn: "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/lambda_{{ aws_lambda }}"
       enabled: True
 
