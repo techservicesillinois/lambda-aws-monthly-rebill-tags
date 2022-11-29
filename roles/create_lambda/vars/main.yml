@@ -12,7 +12,7 @@ trigger_inputs:
   email_to: eepps2@illinois.edu
 
 # See https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html
-eventbridge_schedule: "cron(05 11 ? * 5#3 *)" # third Thursday of every month at 11:05 UTC
+eventbridge_schedule: "cron(35 21 ? * 3#3 *)" # third Thursday of every month at 11:05 UTC
 
 tags:
   NetID: eepps2
