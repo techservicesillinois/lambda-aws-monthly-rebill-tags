@@ -15,7 +15,7 @@
     s3_bucket: billing-lambda-src
     s3_key: generate_report.py.zip
     runtime: "python3.8"
-    role: "arn:aws:iam::{{ aws_info.account }}:role/{{ aws_lambda }}"
+    role: arn:aws:iam::379068314111:role/service-role/lambda_send_billing_email
     handler: "lambda_function.lambda_handler"
     memory_size: 128
     timeout: 5
