@@ -36,6 +36,7 @@
 - name: Add trigger to EventBridge/CloudWatch event
   community.aws.lambda_event:
     state: present
+    region: "{{ region }}"
     event_source: sqs
     function_name: "{{ aws_lambda }}"
     source_params:
