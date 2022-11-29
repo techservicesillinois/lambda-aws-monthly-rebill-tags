@@ -32,3 +32,13 @@
         arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
         input: '{"tag-key": "Department", "tag-value": "", "tag-value-default": "MSS", "days": "180", "show-chart": "0", "email-from": "eepps2@illinois.edu", "email-to": "eepps2@illinois.edu"}'
 
+# Example that creates a lambda event notification for a DynamoDB stream
+- name: Add trigger to EventBridge/CloudWatch event
+  community.aws.lambda_event:
+    state: present
+    event_source: sqs
+    function_name: "{{ aws_lambda }}"
+    source_params:
+      source_arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
+      enabled: True
+
