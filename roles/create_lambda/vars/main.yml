@@ -17,6 +17,6 @@ eventbridge_schedule: "cron(05 11 ? * 5#3 *)" # third Thursday of every month at
 tags:
   NetID: eepps2
   Contact: smg-support@illinois.edu
-  CFOP: "{{ cfop }}"
   service: billing
   Department: MSS
+#  CFOP: "{{ cfop }}"

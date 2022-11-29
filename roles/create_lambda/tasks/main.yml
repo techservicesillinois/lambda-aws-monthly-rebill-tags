@@ -19,21 +19,22 @@
     policy_name: "lambda_cost_explorer_ses_{{ aws_lambda }}"
     policy_json: "{{ lookup('template', 'cost_explorer_ses_policy.json.j2') }}"
 
-# see https://github.com/techservicesillinois/splunk-aws-serverless-apps/tree/master/splunk-cloudwatch-logs-processor
-# see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter.html
-# see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#LambdaFunctionExample
-
 # TODO automatically generate the .zip file when generate_report.py is modified
+
+# see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
 - name: Deploy lambda
   community.aws.lambda:
     name: "{{ aws_lambda }}"
+    description: Function to email cost breakout data based on tags/service from Cost Explorer
     region: "{{ region }}"
-    zip_file: "{{ lookup('file', 'generate_report.py.zip') }}"
+    s3_bucket: billing-lambda-src
+    s3_key: generate_report.py.zip
     runtime: "python3.8"
     role: "arn:aws:iam::{{ aws_info.account }}:role/{{ aws_lambda }}"
     handler: "lambda_function.lambda_handler"
     memory_size: 128
     timeout: 5
+    tags: "{{ tags }}"
 # TODO way to add layers from Amazon? AWSSDKPandas-Python38
 
 # see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
@@ -45,4 +46,4 @@
     targets:
       - id: MyTargetId
         arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
-        input: '{"tag-key": "{{ trigger_inputs.tag_key }}", "tag-value": "{{ trigger_inputs.tag_value }}", "tag-value-default": "{{ trigger_inputs.tag_value_default }}", "days": "{{ trigger_inputs.days }}", "show-chart": "{{ trigger_inputs.show_chart }}", "email-from": "{{ trigger_inputs.email_from }}", "email-to": "{{ trigger_inputs.email_to }}"}'
+        input: "{{ trigger_inputs }}"
