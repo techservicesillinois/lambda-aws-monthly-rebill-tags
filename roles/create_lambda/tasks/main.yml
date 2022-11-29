@@ -31,4 +31,4 @@
     targets:
       - id: MyTargetId
         arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
-        input: {'tag-key': '{{ trigger_inputs.tag_key }}', 'tag-value': '{{ trigger_inputs.tag_value }}', 'tag-value-default': '{{ trigger_inputs.tag_value_default }}', 'days': '{{ trigger_inputs.days }}', 'show-chart': '{{ trigger_inputs.show_chart }}', 'email-from': '{{ trigger_inputs.email_from }}', 'email-to': '{{ trigger_inputs.email_to }}'}
+        input: '{"tag-key": "{{ trigger_inputs.tag_key }}", "tag-value": "{{ trigger_inputs.tag_value }}", "tag-value-default": "{{ trigger_inputs.tag_value_default }}", "days": "{{ trigger_inputs.days }}", "show-chart": "{{ trigger_inputs.show_chart }}", "email-from": "{{ trigger_inputs.email_from }}", "email-to": "{{ trigger_inputs.email_to }}"}'
