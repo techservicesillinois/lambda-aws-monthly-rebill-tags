@@ -31,4 +31,5 @@
     targets:
       - id: MyTargetId
         arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
-        input: "{{ trigger_inputs }}"
+        input: '{"tag-key": "Department", "tag-value": "", "tag-value-default": "MSS", "days": "180", "show-chart": "0", "email-from": "eepps2@illinois.edu", "email-to": "eepps2@illinois.edu"}'
+
