@@ -12,7 +12,7 @@
   community.aws.lambda:
     name: "{{ aws_lambda }}"
     region: "{{ region }}"
-    s3_bucket: arn:aws:s3:::billing-lambda-src
+    s3_bucket: billing-lambda-src
     s3_key: generate_report.py.zip
     runtime: "python3.8"
     role: "arn:aws:iam::{{ aws_info.account }}:role/{{ aws_lambda }}"
