@@ -11,8 +11,6 @@
     description: "Policy for billing email lambda"
     managed_policies: []
 - name: Apply policy to iam role
-  vars:
-    region: us-east-2
   community.aws.iam_policy:
     iam_type: role
     iam_name: "{{ email_role }}"
@@ -33,13 +31,14 @@
     name: "{{ aws_lambda }}"
     description: Function to email cost breakout data based on tags/service from Cost Explorer
     region: "{{ region }}"
-    s3_bucket: billing-lambda-src
-    s3_key: generate_report.py.zip
+    s3_bucket: "{{ s3_source.bucket }}"
+    s3_key: "{{ s3_source.key }}"
     runtime: "python3.8"
     role: "arn:aws:iam::{{ aws_info.account }}:role/{{ email_role }}"
     handler: "generate_report.lambda_handler"
     memory_size: 128
     timeout: 5
+    tags: "{{ tags }}"
 
 # TODO way to add layers from Amazon? AWSSDKPandas-Python38
 
