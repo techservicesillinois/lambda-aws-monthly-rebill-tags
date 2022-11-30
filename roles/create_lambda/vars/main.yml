@@ -3,6 +3,11 @@ state: present
 aws_lambda: monthly-billing-by-tag
 email_role: lambda_send_billing_email
 
+s3_source:
+  bucket: billing-lambda-src
+  key: generate_report.py.zip
+
+
 trigger_inputs:
   tag_key: Department
   tag_value: ""
