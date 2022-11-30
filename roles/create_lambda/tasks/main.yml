@@ -12,7 +12,7 @@
     managed_policies: []
 - name: Apply policy to iam role
   vars:
-    region: us-east-2
+    region: "{{ region }}"
   community.aws.iam_policy:
     iam_type: role
     iam_name: "{{ email_role }}"
@@ -23,8 +23,8 @@
       json: allow_cost_explorer_read.json.j2
     - name: allowSESSendEmail
       json: allow_ses_send_email.json.j2
-    - name: AWSLambdaBasicExecutionRole-468373a4-6743-4944-a055-6431b07ace7d
-      json: aws_lamba_basic_execution_role.json.j2
+    - name: AWSLambdaBasicExecutionRole
+      json: aws_lambda_basic_execution_role.json.j2
 
 
 # see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
@@ -36,7 +36,7 @@
     s3_bucket: billing-lambda-src
     s3_key: generate_report.py.zip
     runtime: "python3.8"
-    role: arn:aws:iam::379068314111:role/service-role/lambda_send_billing_email
+    role: "arn:aws:iam::{{ aws_info.account }}:role/{{ aws_lambda }}"
     handler: "generate_report.lambda_handler"
     memory_size: 128
     timeout: 5
