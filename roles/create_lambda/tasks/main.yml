@@ -24,7 +24,7 @@
     - name: allowSESSendEmail
       json: allow_ses_send_email.json.j2
     - name: AWSLambdaBasicExecutionRole-468373a4-6743-4944-a055-6431b07ace7d
-      json: aws_lambda_basic_execution_role.json.j2
+      json: aws_lamba_basic_execution_role.json.j2
 
 
 # see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
