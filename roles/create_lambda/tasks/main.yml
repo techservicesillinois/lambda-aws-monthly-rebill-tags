@@ -51,7 +51,7 @@
     targets:
       - id: MyTargetId
         arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
-        input: "{{ trigger_inputs }}"
+        input: "{{ trigger_inputs | to_json }}"
 
 # Example that creates a lambda event notification for a DynamoDB stream
 #- name: Add trigger to EventBridge/CloudWatch event
