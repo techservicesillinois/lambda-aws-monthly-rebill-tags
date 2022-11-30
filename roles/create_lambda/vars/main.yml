@@ -6,7 +6,7 @@ email_role: lambda_send_billing_email
 s3_source:
   bucket: billing-lambda-src
   key: generate_report.py.zip
-
+  function_name: generate_report
 
 trigger_inputs:
   tag_key: Department
