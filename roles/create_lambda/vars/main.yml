@@ -1,5 +1,4 @@
 region: us-east-2
-state: present
 aws_lambda: monthly-billing-by-tag
 email_role: lambda_send_billing_email
 
