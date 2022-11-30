@@ -23,7 +23,7 @@
       json: allow_cost_explorer_read.json.j2
     - name: allowSESSendEmail
       json: allow_ses_send_email.json.j2
-    - name: AWSLambdaBasicExecutionRole-468373a4-6743-4944-a055-6431b07ace7d
+    - name: AWSLambdaBasicExecutionRole
       json: aws_lambda_basic_execution_role.json.j2
 
 
