@@ -3,15 +3,17 @@
     "Statement": [
         {
             "Effect": "Allow",
-            "Principal": { "AWS": "arn:aws:iam::{{ aws_info.account }}:root" },
-            "Action": "logs:CreateLogGroup"
+            "Action": "logs:CreateLogGroup",
+            "Resource": "arn:aws:logs:{{ region }}:{{ aws_info.account }}:*"
         },
         {
             "Effect": "Allow",
-            "Principal": { "AWS": "arn:aws:iam::{{ aws_info.account }}:root" },
             "Action": [
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:logs:{{ region }}:{{ aws_info.account }}:log-group:/aws/lambda/monthlyBillingEmail:*"
             ]
         }
     ]
