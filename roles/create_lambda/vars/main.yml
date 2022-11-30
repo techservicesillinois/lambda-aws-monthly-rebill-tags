@@ -1,7 +1,11 @@
 region: us-east-2
-state: present
-aws_lambda: monthly-billing-by-tag
+aws_lambda: monthly-billing-by-tag2
 email_role: lambda_send_billing_email2
+
+s3_source:
+  bucket: billing-lambda-src
+  key: generate_report.py.zip
+  function_name: generate_report
 
 trigger_inputs:
   tag_key: Department
@@ -13,10 +17,11 @@ trigger_inputs:
   email_to: eepps2@illinois.edu
 
 # See https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html
-eventbridge_schedule: "cron(12 22 ? * 3#5 *)" # third Thursday of every month at 11:05 UTC
+eventbridge_schedule: "cron(05 11 ? * 5#3 *)" # third Thursday of every month at 11:05 UTC
 
 tags:
   NetID: eepps2
   Contact: smg-support@illinois.edu
   service: billing
   Department: MSS
+#  CFOP: "{{ cfop }}"
