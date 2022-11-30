@@ -4,6 +4,28 @@
   amazon.aws.aws_caller_info:
   register: aws_info
 
+- name: Create iam role for sdg login
+  community.aws.iam_role:
+    name: "{{ email_role }}"
+    assume_role_policy_document: "{{ lookup('ansible.builtin.template','email_lambda_policy.json.j2') }}"
+    description: "Policy for billing email lambda"
+    managed_policies: []
+- name: Apply policy to iam role
+  vars:
+    region: us-east-2
+  community.aws.iam_policy:
+    iam_type: role
+    iam_name: "{{ email_role }}"
+    policy_name: "{{ item.name }}"
+    policy_json: "{{ lookup('ansible.builtin.template', item.json) }}"
+  loop:
+    - name: allowCostExplorerRead
+      json: allow_cost_explorer_read.json.j2
+    - name: allowSESSendEmail
+      json: allow_ses_send_email.json.j2
+    - name: AWSLambdaBasicExecutionRole-468373a4-6743-4944-a055-6431b07ace7d
+      json: aws_lambda_basic_execution_role.json.j2
+
 
 # see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
 - name: Deploy lambda
