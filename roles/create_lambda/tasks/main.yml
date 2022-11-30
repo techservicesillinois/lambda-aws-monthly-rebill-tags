@@ -11,8 +11,6 @@
     description: "Policy for billing email lambda"
     managed_policies: []
 - name: Apply policy to iam role
-  vars:
-    region: "{{ region }}"
   community.aws.iam_policy:
     iam_type: role
     iam_name: "{{ email_role }}"
