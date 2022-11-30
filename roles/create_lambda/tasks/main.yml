@@ -11,11 +11,11 @@
     assume_role_policy_document: "{{ lookup('ansible.builtin.template','email_lambda_policy.json.j2') }}"
     description: "Policy for billing email lambda"
     managed_policies: []
+
+# see https://docs.ansible.com/ansible/latest/collections/amazon/aws/iam_policy_module.html
 - name: Apply policy to iam role
   vars:
     region: "{{ region }}"
-    
-# see https://docs.ansible.com/ansible/latest/collections/amazon/aws/iam_policy_module.html
   community.aws.iam_policy:
     iam_type: role
     iam_name: "{{ email_role }}"
@@ -28,7 +28,7 @@
       json: allow_ses_send_email.json.j2
     - name: AWSLambdaBasicExecutionRole
       json: aws_lambda_basic_execution_role.json.j2
-      
+
 # TODO automatically generate the .zip file when generate_report.py is modified
 
 # see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
@@ -56,4 +56,4 @@
     targets:
       - id: MyTargetId
         arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
-        input: "{{ trigger_inputs }}"
+        input: "{{ trigger_inputs | to_json }}"
