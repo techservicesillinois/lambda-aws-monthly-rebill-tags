@@ -43,7 +43,14 @@
     memory_size: 128
     timeout: 5
     tags: "{{ tags }}"
-# TODO way to add layers from Amazon? AWSSDKPandas-Python38
+    
+# see https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html?icmpid=docs_lambda_help
+# see https://docs.aws.amazon.com/lambda/latest/dg/invocation-layers.html
+- name: Add Pandas layer
+  ansible.builtin.shell: |
+    aws lambda update-function-configuration \
+      --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}" \
+      --layers "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:layer:AWSSDKPandas-Python38:1"
 
 # see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
 - name: Create EventBridge event rule
