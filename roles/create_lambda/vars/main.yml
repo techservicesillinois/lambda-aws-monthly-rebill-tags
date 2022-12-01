@@ -2,6 +2,11 @@ region: us-east-2
 aws_lambda: monthly-billing-by-tag2
 email_role: lambda_send_billing_email2
 
+lambda_function_name: monthly-billing-by-tag
+iam_role_name: "lambda_{{ lambda_function_name }}"
+eventbridge_rule_name: "lambda_{{ lambda_function_name }}"
+
+
 s3_source:
   bucket: billing-lambda-src
   key: generate_report.py.zip
