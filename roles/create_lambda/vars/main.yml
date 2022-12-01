@@ -9,7 +9,7 @@ s3_source:
 
 trigger_inputs:
   tag_key: Department
-  tag_value: MSS
+  tag_value:
   tag_value_default: MSS
   days: 30
   show_chart: 0
