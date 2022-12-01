@@ -53,14 +53,9 @@
         arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
         input: "{{ trigger_inputs | to_json }}"
 
-# Example that creates a lambda event notification for a DynamoDB stream
-#- name: Add trigger to EventBridge/CloudWatch event
-#  community.aws.lambda_event:
-#    state: present
-#    region: "{{ region }}"
-#    event_source: sqs
-#    function_name: "{{ aws_lambda }}"
-#    source_params:
-#      source_arn: "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/lambda_{{ aws_lambda }}"
-#      enabled: True
-
+# see https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html
+- name: Create EventBridge trigger
+  ansible.builtin.shell: |
+    aws lambda create-event-source-mapping \
+      --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}" \
+      --event-source-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/lambda_{{ aws_lambda }}"
