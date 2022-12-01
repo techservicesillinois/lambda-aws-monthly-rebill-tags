@@ -171,10 +171,10 @@ def lambda_handler(event, context):
     xl_file_att = xl_output.getvalue()
     
     # send email with Excel file attachment data
-    send_email(tag_email_display, 'from {} to {}'.format(start, end), xl_file_att)
+    send_email(event, tag_email_display, 'from {} to {}'.format(start, end), xl_file_att)
 
 
-def send_email(tag, report_dates, attachment):
+def send_email(event, tag, report_dates, attachment):
     msg = MIMEMultipart()
     msg['From'] = event['email-from']
     msg['To']  = event['email-to']
