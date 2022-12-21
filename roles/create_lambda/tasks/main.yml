@@ -33,8 +33,8 @@
     s3_bucket: "{{ s3_source.bucket }}"
     s3_key: "{{ s3_source.key }}"
     runtime: "python3.8"
-    role: "arn:aws:iam::{{ aws_info.account }}:role/{{ iam_role_name }}"
-    handler: "{{ s3_source.function_name }}.lambda_handler"
+    role: "arn:aws:iam::{{ aws_info.account }}:role/{{ email_role }}"
+    handler: "generate_report.lambda_handler"
     memory_size: 128
     timeout: 5
     tags: "{{ tags }}"
