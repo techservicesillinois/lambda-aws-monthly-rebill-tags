@@ -17,11 +17,11 @@
     policy_name: "{{ item.name }}"
     policy_json: "{{ lookup('ansible.builtin.template', item.json) }}"
   loop:
-    - name: allowCostExplorerRead
+    - name: "{{ iam_role_name }}_allowCostExplorerRead
       json: allow_cost_explorer_read.json.j2
-    - name: allowSESSendEmail
+    - name: "{{ iam_role_name }}_allowSESSendEmail"
       json: allow_ses_send_email.json.j2
-    - name: AWSLambdaBasicExecutionRole
+    - name: "{{ iam_role_name }}_AWSLambdaBasicExecutionRole"
       json: aws_lambda_basic_execution_role.json.j2
 
 # see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
