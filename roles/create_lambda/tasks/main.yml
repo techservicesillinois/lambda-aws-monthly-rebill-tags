@@ -68,7 +68,7 @@
     aws lambda add-permission \
       --region {{ region }} \
       --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}" \
-      --source-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}"
+      --source-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}" \
       --statement-id "schedule_{{ eventbridge_rule_name }}" \
       --action 'lambda:InvokeFunction' \
       --principal events.amazonaws.com
