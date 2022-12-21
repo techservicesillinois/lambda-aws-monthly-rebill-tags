@@ -83,4 +83,4 @@
     aws cloudwatch tag-resource \
       --region {{ region }} \
       --resource-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}" \
-      --tags "{{ tags_as_items | regex_replace(\"'\", '\"') }}"
+      --tags "{{ tags_as_items | to_json }}"
