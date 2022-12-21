@@ -1,9 +1,9 @@
-region: us-east-2
 
-lambda_function_name: monthly-billing-by-tag
+region: us-east-2
+lambda_function_name: "{{ function_name }}"
+
 iam_role_name: "lambda_{{ lambda_function_name }}"
 eventbridge_rule_name: "lambda_{{ lambda_function_name }}"
-
 
 s3_source:
   bucket: billing-lambda-src
@@ -11,20 +11,20 @@ s3_source:
   function_name: generate_report
 
 trigger_inputs:
-  tag_key: Department
-  tag_value:
-  tag_value_default: MSS
-  days: 30
+  tag_key: "{{ tag_key }}"
+  tag_value: "{{ tag_value }}"
+  tag_value_default: "{{ tag_value_default }}"
+  days: "{{ days }}"
   show_chart: 0
-  email_from: eepps2@illinois.edu
-  email_to: eepps2@illinois.edu
+  email_from: "{{ email_from }}"
+  email_to: "{{ email_to }}"
 
 # See https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html
-eventbridge_schedule: "cron(05 11 ? * 5#3 *)" # third Thursday of every month at 11:05 UTC
+eventbridge_schedule: "{{ cron_schedule }}"
 
 tags:
   NetID: eepps2
   Contact: smg-support@illinois.edu
   service: billing
   Department: MSS
-#  CFOP: "{{ cfop }}"
+  CFOP: 1-304393-798005-798107-798834
