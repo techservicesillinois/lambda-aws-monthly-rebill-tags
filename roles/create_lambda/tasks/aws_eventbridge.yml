@@ -1,0 +1,32 @@
+# see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
+- name: Create EventBridge event rule
+  community.aws.cloudwatchevent_rule:
+    name: "{{ eventbridge_rule_name }}"
+    region: "{{ region }}"
+    schedule_expression: "{{ eventbridge_schedule }}"
+    description: Run billing report Lambda on schedule
+    tags: "{{ tags }}"
+    targets:
+      - id: "target_{{ eventbridge_rule_name }}"
+        arn: "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}"
+        input: "{{ trigger_inputs | to_json }}"
+
+# see https://docs.amazonaws.cn/en_us/AmazonCloudWatch/latest/events/RunLambdaSchedule.html
+# see https://docs.aws.amazon.com/cli/latest/reference/lambda/add-permission.html
+- name: Grant permission to EventBridge trigger
+  ansible.builtin.shell: |
+    aws lambda add-permission \
+      --region {{ region }} \
+      --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}" \
+      --source-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}" \
+      --statement-id "schedule_{{ eventbridge_rule_name }}" \
+      --action 'lambda:InvokeFunction' \
+      --principal events.amazonaws.com
+
+# see https://docs.aws.amazon.com/cli/latest/reference/events/tag-resource.html
+- name: Add tags to EventBridge trigger
+  ansible.builtin.shell: |
+    aws events tag-resource \
+      --region {{ region }} \
+      --resource-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}" \
+      --tags '{{ tags_as_items | to_json }}'

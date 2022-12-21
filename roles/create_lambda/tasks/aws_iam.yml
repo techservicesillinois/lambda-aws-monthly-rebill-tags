@@ -1,0 +1,20 @@
+- name: Create iam role for sdg login
+  community.aws.iam_role:
+    name: "{{ iam_role_name }}"
+    assume_role_policy_document: "{{ lookup('ansible.builtin.template','email_lambda_policy.json.j2') }}"
+    description: "Policy for billing email lambda"
+    tags: "{{ tags }}"
+    managed_policies: []
+- name: Apply policy to iam role
+  community.aws.iam_policy:
+    iam_type: role
+    iam_name: "{{ iam_role_name }}"
+    policy_name: "{{ item.name }}"
+    policy_json: "{{ lookup('ansible.builtin.template', item.json) }}"
+  loop:
+    - name: allowCostExplorerRead
+      json: allow_cost_explorer_read.json.j2
+    - name: allowSESSendEmail
+      json: allow_ses_send_email.json.j2
+    - name: AWSLambdaBasicExecutionRole
+      json: aws_lambda_basic_execution_role.json.j2

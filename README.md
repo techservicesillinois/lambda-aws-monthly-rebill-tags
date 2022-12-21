@@ -4,6 +4,10 @@ Based on https://github.com/agussman/aws-cost-explorer
 
 A simple Python 3 script to run via AWS Lambda to report monthly billing from AWS Cost Explorer split by Tag.
 
+# Python source code
+
+The Python source code is written in Python 3.8 and is included as a file in the Ansible role (/roles/create_lambda/files/generate_report.py). As part of the setup process, the .py file is pulled from a .zip archive in a publicly accessible S3 bucket for easy import into Lambda.
+
 # Input values
 
 Inputs required (JSON will be included in trigger and passed to the function in the event variable):
@@ -21,7 +25,9 @@ Inputs required (JSON will be included in trigger and passed to the function in 
 
 # Setup
 
-Ansible install in lambda.yml (eventually...)
+Ansible install in lambda.yml via AWX. 
+
+*Note: ability to add Pandas layer in Ansible/CLI is not available. For now, add the AWSSDKPandas-Python38 layer directly in the AWS console.*
 
 # References
 

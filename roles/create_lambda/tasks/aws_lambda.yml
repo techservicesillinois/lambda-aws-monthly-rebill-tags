@@ -1,0 +1,25 @@
+# see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
+- name: Create Lambda
+  community.aws.lambda:
+    name: "{{ lambda_function_name }}"
+    description: Function to email cost breakout data based on tags/service from Cost Explorer
+    region: "{{ region }}"
+    role: "arn:aws:iam::{{ aws_info.account }}:role/{{ iam_role_name }}"
+    s3_bucket: "{{ s3_source.bucket }}"
+    s3_key: "{{ s3_source.key }}"
+    runtime: "python3.8"
+    handler: "{{ s3_source.function_name }}.lambda_handler"
+    memory_size: 128
+    timeout: 5
+    tags: "{{ tags }}"
+    
+# see https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html?icmpid=docs_lambda_help
+# see https://docs.aws.amazon.com/lambda/latest/dg/invocation-layers.html
+#- name: Add Pandas layer
+#  ansible.builtin.shell: |
+#    aws lambda update-function-configuration \
+#      --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}" \
+#      --layers "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:layer:AWSSDKPandas-Python38:1"
+# ****** AWS-provided layers don't seem to be available even by command line, so need to package the whole thing up, I guess ********
+#
+#   in the mean time, add manually in GUI
