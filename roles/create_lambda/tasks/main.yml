@@ -25,10 +25,9 @@
     - name: AWSLambdaBasicExecutionRole
       json: aws_lambda_basic_execution_role.json.j2
       
-      
-- name: Pause for 1 minute for role to be created
-  ansible.builtin.pause:
-    minutes: 1
+#- name: Pause for 1 minute for role to be created
+#  ansible.builtin.pause:
+#    minutes: 1
 
 # see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
 - name: Create Lambda
@@ -84,4 +83,4 @@
     aws cloudwatch tag-resource \
       --region {{ region }} \
       --resource-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}" \
-      --tags "[{\"Key\":\"Contact\",\"Value\":\"smg-support@illinois.edu\"},{\"Key\":\"service\",\"Value\":\"billing\"},{\"Key\":\"CFOP\",\"Value\":\"1-304393-798005-798107-798834\"}]"
+      --tags "{{ tags | items2dict }}"
