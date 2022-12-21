@@ -17,7 +17,7 @@
     policy_name: "{{ item.name }}"
     policy_json: "{{ lookup('ansible.builtin.template', item.json) }}"
   loop:
-    - name: "{{ iam_role_name }}_allowCostExplorerRead
+    - name: "{{ iam_role_name }}_allowCostExplorerRead"
       json: allow_cost_explorer_read.json.j2
     - name: "{{ iam_role_name }}_allowSESSendEmail"
       json: allow_ses_send_email.json.j2
