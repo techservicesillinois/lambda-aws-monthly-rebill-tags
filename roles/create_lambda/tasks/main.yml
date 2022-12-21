@@ -80,7 +80,7 @@
 
 - name: Add tags to EventBridge trigger
   ansible.builtin.shell: |
-    aws cloudwatch tag-resource \
+    aws events tag-resource \
       --region {{ region }} \
       --resource-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}" \
       --tags "{{ tags_as_items | to_json }}"
