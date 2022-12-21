@@ -57,7 +57,7 @@
 # see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
 - name: Create EventBridge event rule
   community.aws.cloudwatchevent_rule:
-    name: "{{ eventbridge_rule }}"
+    name: "lambda_{{ lambda_function_name }}"
     region: "{{ region }}"
     schedule_expression: "{{ eventbridge_schedule }}"
     description: Run billing report Lambda on schedule
