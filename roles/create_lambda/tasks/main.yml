@@ -9,6 +9,7 @@
     name: "{{ iam_role_name }}"
     assume_role_policy_document: "{{ lookup('ansible.builtin.template','email_lambda_policy.json.j2') }}"
     description: "Policy for billing email lambda"
+    tags: "{{ tags }}"
     managed_policies: []
 - name: Apply policy to iam role
   community.aws.iam_policy:
@@ -56,6 +57,7 @@
     region: "{{ region }}"
     schedule_expression: "{{ eventbridge_schedule }}"
     description: Run billing report Lambda on schedule
+    tags: "{{ tags }}"
     targets:
       - id: "target_{{ eventbridge_rule_name }}"
         arn: "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}"
