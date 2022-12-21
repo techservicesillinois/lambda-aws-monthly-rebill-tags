@@ -43,6 +43,7 @@
 - name: Add Pandas layer
   ansible.builtin.shell: |
     aws lambda update-function-configuration \
+      --region {{ region }} \
       --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}" \
       --layers "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:layer:AWSSDKPandas-Python38:1"
 
@@ -61,5 +62,6 @@
 - name: Create EventBridge trigger
   ansible.builtin.shell: |
     aws lambda create-event-source-mapping \
+      --region {{ region }} \
       --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}" \
       --event-source-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/lambda_{{ aws_lambda }}"
