@@ -62,7 +62,6 @@
     region: "{{ region }}"
     schedule_expression: "{{ eventbridge_schedule }}"
     description: Run billing report Lambda on schedule
-    tags: "{{ tags }}"
     targets:
       - id: "target_{{ eventbridge_rule_name }}"
         arn: "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}"
@@ -79,3 +78,10 @@
       --statement-id "schedule_{{ eventbridge_rule_name }}" \
       --action 'lambda:InvokeFunction' \
       --principal events.amazonaws.com
+
+- name: Add tags to EventBridge trigger
+  ansible.builtin.shell: |
+    aws tag-resource \
+      --region {{ region }} \
+      --resource-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}" \
+      --tags "{{ tags }}"
