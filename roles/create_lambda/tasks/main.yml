@@ -84,4 +84,4 @@
     aws cloudwatch tag-resource \
       --region {{ region }} \
       --resource-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/{{ eventbridge_rule_name }}" \
-      --tags "{{ tags }}"
+      --tags "[{\"Key\":\"Contact\",\"Value\":\"smg-support@illinois.edu\"},{\"Key\":\"service\",\"Value\":\"billing\"},{\"Key\":\"CFOP\",\"Value\":\"1-304393-798005-798107-798834\"}]"
