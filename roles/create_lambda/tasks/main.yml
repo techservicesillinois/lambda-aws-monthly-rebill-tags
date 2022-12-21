@@ -28,7 +28,7 @@
 # see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
 - name: Deploy lambda
   community.aws.lambda:
-    name: "{{ aws_lambda }}"
+    name: "{{ lambda_function_name }}"
     description: Function to email cost breakout data based on tags/service from Cost Explorer
     region: "{{ region }}"
     s3_bucket: "{{ s3_source.bucket }}"
@@ -49,13 +49,13 @@
 
 # see https://docs.ansible.com/ansible/latest/collections/community/aws/cloudwatchevent_rule_module.html
 - community.aws.cloudwatchevent_rule:
-    name: "lambda_{{ aws_lambda }}"
+    name: "lambda_{{ lambda_function_name }}"
     region: "{{ region }}"
     schedule_expression: "{{ eventbridge_schedule }}"
     description: Run billing report Lambda on schedule
     targets:
       - id: MyTargetId
-        arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}
+        arn: arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}
         input: "{{ trigger_inputs | to_json }}"
 
 # see https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html
@@ -63,5 +63,5 @@
   ansible.builtin.shell: |
     aws lambda create-event-source-mapping \
       --region {{ region }} \
-      --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ aws_lambda }}" \
-      --event-source-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/lambda_{{ aws_lambda }}"
+      --function-name "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}" \
+      --event-source-arn "arn:aws:events:{{ region }}:{{ aws_info.account }}:rule/lambda_{{ lambda_function_name }}"
