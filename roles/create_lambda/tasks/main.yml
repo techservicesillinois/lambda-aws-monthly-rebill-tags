@@ -17,11 +17,11 @@
     policy_name: "{{ item.name }}"
     policy_json: "{{ lookup('ansible.builtin.template', item.json) }}"
   loop:
-    - name: "{{ iam_role_name }}_allowCostExplorerRead"
+    - name: allowCostExplorerRead
       json: allow_cost_explorer_read.json.j2
-    - name: "{{ iam_role_name }}_allowSESSendEmail"
+    - name: allowSESSendEmail
       json: allow_ses_send_email.json.j2
-    - name: "{{ iam_role_name }}_AWSLambdaBasicExecutionRole"
+    - name: AWSLambdaBasicExecutionRole
       json: aws_lambda_basic_execution_role.json.j2
 
 # see https://docs.ansible.com/ansible/latest/collections/amazon/aws/lambda_module.html
@@ -57,7 +57,7 @@
     schedule_expression: "{{ eventbridge_schedule }}"
     description: Run billing report Lambda on schedule
     targets:
-      - id: MyTargetId
+      - id: "target_{{ eventbridge_rule_name }}"
         arn: "arn:aws:lambda:{{ region }}:{{ aws_info.account }}:function:{{ lambda_function_name }}"
         input: "{{ trigger_inputs | to_json }}"
 
