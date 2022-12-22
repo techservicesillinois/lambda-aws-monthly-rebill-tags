@@ -4,6 +4,6 @@
   amazon.aws.aws_caller_info:
   register: aws_info
 
-- include: aws_iam.yml
-- include: aws_lambda.yml
-- include: aws_eventbridge.yml
+- ansible.builtin.include_tasks: aws_iam.yml
+- ansible.builtin.include_tasks: aws_lambda.yml
+- ansible.builtin.include_tasks: aws_eventbridge.yml
