@@ -119,7 +119,7 @@ def lambda_handler(event, context):
     num_rows = len(arr_amount) + 1
     
     # create pandas DataFrame from output values
-    xl_file_df = {'Account': arr_account_number, event['tag-key']: arr_tag_value, 'Service': arr_service, 'Month': arr_month, 'Amount': arr_amount}
+    xl_file_df = {'Account': arr_account_number, 'Tag': arr_tag_value, 'Service': arr_service, 'Month': arr_month, 'Amount': arr_amount}
     xl_file = pd.DataFrame(xl_file_df)
 
     # write Excel output to a stream
@@ -189,7 +189,7 @@ def send_email(event, tag, report_dates, attachment):
 
     # the attachment
     part = MIMEApplication(attachment)
-    part.add_header('Content-Disposition', 'attachment', filename="AWS-MonthlyCostByTag-{}.xlsx".format(tag))
+    part.add_header('Content-Disposition', 'attachment', filename="AWS-MonthlyCostByTag-{}.xlsx".format(tag).replace(' ','_'))
     msg.attach(part)
 
     # Create an AWS Simple Email Service (SES) client
