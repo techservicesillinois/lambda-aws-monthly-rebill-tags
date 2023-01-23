@@ -1,0 +1,9 @@
+- name: Create Lambda function and trigger
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Create additional Eventbridge trigger
+      ansible.builtin.include_role:
+        name: create_lambda
+        tasks_from: aws_eventbridge.yml
