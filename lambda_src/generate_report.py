@@ -97,7 +97,8 @@ def lambda_handler(event, context):
     arr_month = []
     arr_amount = []
     for timeperiod in response_cost["ResultsByTime"]:
-        month = timeperiod["TimePeriod"]["Start"].replace("-01","")
+        month = timeperiod["TimePeriod"]["Start"]
+        month = month[:7]
         for groups in timeperiod["Groups"]:
             service = groups['Keys'][1]
             tag_value = groups['Keys'][0].replace('{}$'.format(event['tag-key']),'')
