@@ -35,7 +35,7 @@ def lambda_handler(event, context):
     # Set the end of the range to start of the current month
     dt_end = datetime.datetime(year=dt_now.year, month=dt_now.month, day=1)
     # Subtract number of days and then "truncate" to the start of that month
-    dt_start = dt_end - datetime.timedelta(days=event['days'])
+    dt_start = dt_end - datetime.timedelta(days=int(event['days']))
     dt_start = datetime.datetime(year=dt_start.year, month=dt_start.month, day=1)
 
     # Convert them to strings
