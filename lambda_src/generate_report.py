@@ -35,12 +35,13 @@ def lambda_handler(event, context):
     # Set the end of the range to start of the current month
     dt_end = datetime.datetime(year=dt_now.year, month=dt_now.month, day=1)
     # Subtract number of days and then "truncate" to the start of that month
-    dt_start = dt_end - datetime.timedelta(days=int(event['days']))
+    dt_start = dt_end - datetime.timedelta(days=event['days'])
     dt_start = datetime.datetime(year=dt_start.year, month=dt_start.month, day=1)
 
     # Convert them to strings
     start = dt_start.strftime('%Y-%m-%d')
     end = dt_end.strftime('%Y-%m-%d')
+    month_file = dt_start.strftime('%b%Y')
 
     # If there is no tag value specified, get a list of available tag
     #  values for the provided key
@@ -172,10 +173,10 @@ def lambda_handler(event, context):
     xl_file_att = xl_output.getvalue()
     
     # send email with Excel file attachment data
-    send_email(event, tag_email_display, 'from {} to {}'.format(start, end), xl_file_att)
+    send_email(event, account_number, tag_email_display, 'from {} to {}'.format(start, end), month_file, xl_file_att)
 
 
-def send_email(event, tag, report_dates, attachment):
+def send_email(event, account_number, tag, report_dates, month_file, attachment):
     msg = MIMEMultipart()
     msg['From'] = event['email-from']
     msg['To']  = event['email-to']
@@ -190,7 +191,7 @@ def send_email(event, tag, report_dates, attachment):
 
     # the attachment
     part = MIMEApplication(attachment)
-    part.add_header('Content-Disposition', 'attachment', filename="AWS-MonthlyCostByTag-{}.xlsx".format(tag).replace(' ','_'))
+    part.add_header('Content-Disposition', 'attachment', filename="{}-AWS-MonthlyCostByTag-{}.xlsx".format(account_number,tag,month_file).replace(' ','_'))
     msg.attach(part)
 
     # Create an AWS Simple Email Service (SES) client
